@@ -1,0 +1,15 @@
+Warning[202] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 66 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 78 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 155 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 204 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 207 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 221 : Argument out of range.  Least significant bits used.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 262 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 264 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 266 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 268 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 271 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 282 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 285 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 291 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\MCP\SEGMENTOS\SOFTWARE\SEG.X\NEWPIC_8B_GENERAL.ASM 294 : Register in operand not in bank 0.  Ensure that bank bits are correct.

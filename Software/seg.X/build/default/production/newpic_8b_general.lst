@@ -1,0 +1,830 @@
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;*******************************************************************************
+                      00002 ; UFSC- Universidade Federal de Santa Catarina
+                      00003 ; Projeto: 7 Segmentos
+                      00004 ; Autor: Raul Brum e Roberta Silvano
+                      00005 ; 7 Segmentos
+                      00006 ;
+                      00007 ;*******************************************************************************
+                      00008  
+                      00009     
+                      00010     
+                      00011     
+                      00012     
+                      00013 
+                      00014 #include <P16F877A.INC>         ; Arquivo de include do uC usado, no caso PIC16F877A
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ; Build date : Jan 06 2020
+                      00005 ;  MPASM PIC16F877A processor include
+                      00006 ; 
+                      00007 ;  (c) Copyright 1999-2020 Microchip Technology, All rights reserved
+                      00008 ;==========================================================================
+                      00009 
+                      00567         LIST
+                      00015 
+                      00016 ; Palavra de configura??o, desabilita e habilita algumas op??es internas
+2007   3F39           00017   __CONFIG  _CP_OFF & _CPD_OFF & _DEBUG_OFF & _LVP_OFF & _WRT_OFF & _BODEN_OFF & _PWRTE_OFF & _WDT_OFF &
+                             _XT_OSC
+                      00018 
+                      00019 
+                      00020 ;***** defini??o de Vari?veis  *****************************
+                      00021 ;cria constantes para o programa
+                      00022 
+                      00023         cblock 0x20
+  00000020            00024             dezena
+  00000021            00025             unidade
+  00000022            00026             dezena_buffer
+  00000023            00027             valor_enter
+  00000024            00028             tempo0
+  00000025            00029             tempo1
+  00000026            00030             filtro
+                      00031         endc 
+                      00032         
+                      00033         
+                      00034 ;********* vari?veis de Entrada ************
+                      00035 #define     btn_inc     PORTB,0 ; Pino 33
+                      00036 #define     btn_dec     PORTB,1         ; Pino 34
+                      00037 #define     btn_enter   PORTB,2         ; Pino 34
+                      00038 #define     btn_pulso   PORTB,3         ; Pino 34
+                      00039 
+                      00040 
+                      00041 ;********* vari?veis de Sa?da ***************
+                      00042 #define         led     PORTC,5             ; Pino 24
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00043 #define         seg     PORTD               ;
+                      00044 
+                      00045 ;******** Vetor de Reset do uC**************
+                      00046  org 0x00                               ; Vetor de reset do uC.
+0000   2???           00047  goto inicio                        ; Desvia para o inicio do programa.
+                      00048 
+                      00049 
+                      00050 ;*************** Rotinas e Sub-Rotinas *****************************************
+                      00051 
+0001                  00052 delays_ms:
+0001   00A5           00053     movwf tempo1
+0002   30FA           00054     movlw .250
+0003   00A4           00055     movwf tempo0
+0004   0000           00056     nop
+0005   0BA4           00057     decfsz tempo0, F
+0006   2???           00058     goto $-2
+                      00059     
+0007   0BA5           00060     decfsz tempo1, F
+0008   2???           00061     goto $-6
+                      00062     
+0009   0008           00063     return
+                      00064     
+000A                  00065 mostrar:
+Warning[202]: Argument out of range.  Least significant bits used.
+000A   0E20           00066     swapf dezena, dezena_buffer ; troca os nibbles da dezena
+                      00067     
+000B   0721           00068     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o valor completo
+                      00069     
+000C   0088           00070     movwf seg ; coloca no PORTD o resultado final
+                      00071     
+000D   0008           00072     return
+                      00073 
+000E                  00074 incrementa:
+                      00075     
+000E   0BA6           00076     decfsz filtro, F
+                      00077     
+Warning[202]: Argument out of range.  Least significant bits used.
+000F   30D0           00078     movlw .2000
+0010   2???           00079     call delays_ms
+                      00080     
+0011   3010           00081     movlw 0x10 ; coloca 10h no acumulador
+                      00082     
+0012   0221           00083     subwf unidade, W ; subtrai 10 da unidade. se der 0, unidade = 10
+0013   1D03           00084     btfss STATUS, 2 ; se der 0 na conta anterior, vai chamar a função da unidade, se não, só a da dezena
+                            . Precisa disso se não ele vai pular valores que tem unidade 0. Por exemplo: do 9 iria direto pr
+0014   2???           00085     call f_inc_unidade
+0015   2???           00086     call f_inc_dezena
+                      00087     
+0016   2???           00088     call f_pulso
+                      00089     
+0017   2???           00090     call mostrar
+                      00091     
+0018   0008           00092     return
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00093     
+0019                  00094 f_inc_unidade:
+0019   3009           00095     movlw 0x09 ; coloca 9h no acumulador
+                      00096     
+001A   0221           00097     subwf unidade, W ; subtrai 9h da unidade, se der 0, unidade = 9
+001B   1903           00098     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função de limpar a unidade. Precisa disso
+                             pra zerar a unidade. Se não, continua o código.
+001C   2???           00099     call clear_unidade
+                      00100     
+                      00101     ;movlw 0x09 ; coloca 9h no acumulador
+                      00102     ;subwf unidade, W ; subtrai 9h da unidade, se der 0, unidade = 9. Se a unidade não for 9, vai chamar
+                             a função de incrementar.
+                      00103     ;btfss STATUS, 2 ; se der 0 na conta anterior, vai chamar a função de incrementar
+001D   2???           00104     call inc_unidade   
+001E   0008           00105     return
+                      00106     
+001F                  00107 inc_unidade:
+001F   0AA1           00108     incf unidade, 1 ; incrementa 1 em unidade
+0020   0008           00109     return
+                      00110     
+0021                  00111 f_inc_dezena:
+0021   300A           00112     movlw 0x0A ; coloca 10h no acumulador
+                      00113     
+0022   0220           00114     subwf dezena, W ; subtrai 10h da dezena, se der 0, dezena = 10. 
+0023   1903           00115     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função de limpar a dezena. Precisa disso 
+                            pra zerar a dezena. Se não, continua o código.
+0024   2???           00116     call clear_dezena
+                      00117     
+0025   300A           00118     movlw 0x0A ; coloca 10h no acumulador
+0026   0220           00119     subwf dezena, W ; subtrai 10h da dezena, se der 0, dezena = 10. Se a dezena não for 10, vai chamar a
+                             função de incrementar.
+0027   1903           00120     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função de incrementar
+0028   2???           00121     call inc_dezena  
+0029   0008           00122     return
+                      00123     
+002A                  00124 inc_dezena:
+002A   0AA0           00125     incf dezena, 1
+002B   0008           00126     return
+                      00127     
+002C                  00128 clear_unidade:
+002C   3000           00129     movlw 0x00
+002D   00A1           00130     movwf unidade
+                      00131     
+002E   2???           00132     call inc_dezena ; quando precisar zerar a unidade, significa que chegou em 9 e portanto tem que incr
+                            ementar a dezena
+002F   2???           00133     call mostrar
+0030   2???           00134     goto loop
+                      00135     
+0031                  00136 clear_dezena:
+0031   3000           00137     movlw 0x00
+0032   00A0           00138     movwf dezena
+0033   2???           00139     call mostrar
+0034   2???           00140     goto loop
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00141 
+                      00142 ;;;;;;;;;;;;
+                      00143 ;    sempre decrementa a unidade
+                      00144 ;    antes de decrementar, verifica se ela eh zero
+                      00145 ;       se sim, tem que usar o set unidade
+                      00146 ;           verifica a dezena
+                      00147 ;               se for zero, set dezena
+                      00148 ;               se nao, so decrementa
+                      00149 ;       se não, so decrementa a unidade
+                      00150         
+0035                  00151 decrementa:
+                      00152     
+0035   0BA6           00153     decfsz filtro, F
+                      00154     
+Warning[202]: Argument out of range.  Least significant bits used.
+0036   30D0           00155     movlw .2000
+0037   2???           00156     call delays_ms
+                      00157     
+0038   3000           00158     movlw 0x00 ; coloca 00h no acumulador
+                      00159     
+0039   0221           00160     subwf unidade, W ; subtrai 00h da unidade. se der 0, unidade = 0
+003A   1903           00161     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função set unidade, se não, só a dec_unid
+                            ade.
+003B   2???           00162     call set_unidade
+003C   2???           00163     call dec_unidade
+                      00164     
+003D   2???           00165     call mostrar
+                      00166     
+003E   0008           00167     return
+                      00168     
+003F                  00169 set_unidade:
+003F   3009           00170     movlw 0x09
+0040   00A1           00171     movwf unidade
+                      00172     
+0041   2???           00173     call f_dec_dezena ; quando precisar zerar a unidade, significa que chegou em 9 e portanto tem que in
+                            crementar a dezena
+0042   2???           00174     call mostrar
+0043   2???           00175     goto loop
+                      00176     
+0044                  00177 dec_unidade:
+0044   03A1           00178     decf unidade, 1 ; incrementa 1 em unidade
+0045   0008           00179     return
+                      00180 
+0046                  00181 f_dec_dezena:
+0046   3000           00182     movlw 0x00 ; coloca 00h no acumulador
+                      00183     
+0047   0220           00184     subwf dezena, W ; subtrai 00h da unidade. se der 0, unidade = 0
+0048   1903           00185     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função da unidade, se não, só a da dezena
+                            .
+0049   2???           00186     call set_dezena
+004A   2???           00187     call dec_dezena
+004B   0008           00188     return
+                      00189 
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+004C                  00190 dec_dezena:
+004C   03A0           00191     decf dezena, 1 ; incrementa 1 em unidade
+004D   0008           00192     return
+                      00193     
+004E                  00194 set_dezena:
+004E   3009           00195     movlw 0x09
+004F   00A0           00196     movwf dezena
+                      00197     
+0050   2???           00198     call mostrar
+0051   2???           00199     goto loop
+                      00200     
+0052                  00201 enter:
+0052   0BA6           00202     decfsz filtro, F
+                      00203     
+Warning[202]: Argument out of range.  Least significant bits used.
+0053   30D0           00204     movlw .2000
+0054   2???           00205     call delays_ms
+                      00206     
+Warning[202]: Argument out of range.  Least significant bits used.
+0055   0E20           00207     swapf dezena, dezena_buffer ; troca os nibbles da dezena
+                      00208     
+0056   0721           00209     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o valor completo
+                      00210     
+0057   00A3           00211     movwf valor_enter
+                      00212     
+0058   3000           00213     movlw 0x00
+0059   00A1           00214     movwf unidade
+005A   00A0           00215     movwf dezena
+005B   0088           00216     movwf seg ; coloca no PORTD o resultado final
+                      00217     
+005C   0008           00218     return
+                      00219     
+005D                  00220 f_pulso:
+Warning[202]: Argument out of range.  Least significant bits used.
+005D   0E20           00221     swapf dezena, dezena_buffer ; troca os nibbles da dezena
+                      00222     
+005E   0721           00223     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o valor completo
+                      00224     
+005F   0223           00225     subwf valor_enter, W
+                      00226     
+0060   1903           00227     btfsc STATUS, 2
+0061   2???           00228     call f_led
+                      00229 
+0062   0008           00230     return
+                      00231     
+0063                  00232 f_led:
+0063   2???           00233     call mostrar
+                      00234     
+0064   1687           00235     bsf led
+                      00236     
+0065   30FA           00237     movlw .250
+0066   2???           00238     call delays_ms
+                      00239     
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0067   3000           00240     movlw 0x00
+0068   00A1           00241     movwf unidade
+0069   00A0           00242     movwf dezena    
+                      00243     
+006A   1287           00244     bcf led
+                      00245     
+006B   0008           00246     return
+                      00247 
+                      00248 
+                      00249 
+                      00250 ;****************** Inicio do programa *****************************************
+                      00251 
+006C                  00252 inicio: 
+                      00253         
+006C   0185           00254         clrf    PORTA           ; Inicializa os Port's. Coloca todas pinos em 0.
+006D   0186           00255         clrf    PORTB
+006E   0187           00256         clrf    PORTC
+006F   0188           00257         clrf    PORTD
+0070   0189           00258         clrf    PORTE
+                      00259 
+0071   1683 1303      00260         banksel TRISA           ; Seleciona banco de mem?ria 1
+0073   30FF           00261         movlw   0xFF
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0074   0086           00262         movwf   TRISB           ; Configura PortB como entrada.
+0075   3000           00263         movlw   0x00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0076   0087           00264         movwf   TRISC           ; Configura PortC como sa?da.
+0077   3000           00265         movlw   0x00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0078   0088           00266         movwf   TRISD           ; Configura PortD como sa?da.
+0079   3007           00267         movlw   0x07
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+007A   0089           00268         movwf   TRISE           ; Configura PortE como entrada e desliga Porta Paralela.
+                      00269 
+007B   3000           00270         movlw   0x00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+007C   0081           00271         movwf   OPTION_REG      ; Configura Op??es:
+                      00272                                 ; Pull-Up habilitados.
+                      00273                                 ; Interrup??o na borda de subida do sinal no pino B0.
+                      00274                                 ; Timer0 incrementado pelo oscilador interno.
+                      00275                                 ; Prescaler WDT 1:1.
+                      00276                                 ; Prescaler Timer0 1:2.
+                      00277 
+007D   3090           00278         movlw   0x90
+007E   008B           00279         movwf   INTCON          ; Desabilita todas as interrup??es.
+                      00280 
+007F   3000           00281         movlw   0x00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0080   008C           00282         movwf   PIE1            ; Desabilita interrup??es perif?ricas.
+                      00283 
+0081   3000           00284         movlw   0x00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0082   008D           00285         movwf   PIE2            ; Desabilita interrup??es perif?ricas.
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00286 
+0083   3007           00287         movlw   0x07
+0084   009F           00288         movwf   ADCON0          ; Desliga conversor A/D, PortA e PortE com I/O digital.
+                      00289 
+0085   3007           00290         movlw   0x07
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0086   009C           00291         movwf   CMCON           ; Desliga comparadores internos.
+                      00292 
+0087   3000           00293         movlw   0x00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0088   009D           00294         movwf   CVRCON          ; Desliga m?dulo de ref?rencia interna de tens?o.
+                      00295 
+0089   1283 1303      00296         banksel PORTA           ; Seleciona banco de mem?ria 0.
+                      00297 
+                      00298 
+                      00299 
+                      00300 ;*********************** Loop principal ****************************************
+008B                  00301 loop:
+008B   1C06           00302     btfss btn_inc ; verifica se o botão foi apertado. se sim, executa a próxima linha
+008C   2???           00303     call incrementa
+                      00304     
+008D   1C86           00305     btfss btn_dec ; verifica se o botão foi apertado. se sim, executa a próxima linha
+008E   2???           00306     call decrementa
+                      00307     
+008F   1D06           00308     btfss btn_enter
+0090   2???           00309     call enter
+                      00310     
+0091   1D86           00311     btfss btn_pulso
+0092   2???           00312     call incrementa
+                      00313     
+0093   30FA           00314     movlw .250
+0094   00A6           00315     movwf filtro
+                      00316     
+0095   2???           00317     goto loop
+3F39                  00318     end                           ; Fim do Programa.    END    
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  8
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ACKDT                             00000005
+ACKEN                             00000004
+ACKSTAT                           00000006
+ADCON0                            0000001F
+ADCON1                            0000009F
+ADCS0                             00000006
+ADCS1                             00000007
+ADCS2                             00000006
+ADDEN                             00000003
+ADFM                              00000007
+ADIE                              00000006
+ADIF                              00000006
+ADON                              00000000
+ADRESH                            0000001E
+ADRESL                            0000009E
+BCLIE                             00000003
+BCLIF                             00000003
+BF                                00000000
+BRGH                              00000002
+C                                 00000000
+C1INV                             00000004
+C1OUT                             00000006
+C2INV                             00000005
+C2OUT                             00000007
+CCP1CON                           00000017
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCP1X                             00000005
+CCP1Y                             00000004
+CCP2CON                           0000001D
+CCP2IE                            00000000
+CCP2IF                            00000000
+CCP2M0                            00000000
+CCP2M1                            00000001
+CCP2M2                            00000002
+CCP2M3                            00000003
+CCP2X                             00000005
+CCP2Y                             00000004
+CCPR1                             00000015
+CCPR1H                            00000016
+CCPR1L                            00000015
+CCPR2                             0000001B
+CCPR2H                            0000001C
+CCPR2L                            0000001B
+CHS0                              00000003
+CHS1                              00000004
+CHS2                              00000005
+CIS                               00000003
+CKE                               00000006
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  9
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+CKP                               00000004
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             0000009C
+CMIE                              00000006
+CMIF                              00000006
+CREN                              00000004
+CSRC                              00000007
+CVR0                              00000000
+CVR1                              00000001
+CVR2                              00000002
+CVR3                              00000003
+CVRCON                            0000009D
+CVREN                             00000007
+CVROE                             00000006
+CVRR                              00000005
+D                                 00000005
+DATA_ADDRESS                      00000005
+DC                                00000001
+D_A                               00000005
+D_NOT_A                           00000005
+EEADR                             0000010D
+EEADRH                            0000010F
+EECON1                            0000018C
+EECON2                            0000018D
+EEDATA                            0000010C
+EEDATH                            0000010E
+EEIE                              00000004
+EEIF                              00000004
+EEPGD                             00000007
+F                                 00000001
+FERR                              00000002
+FSR                               00000004
+GCEN                              00000007
+GIE                               00000007
+GO                                00000002
+GO_DONE                           00000002
+GO_NOT_DONE                       00000002
+I2C_DATA                          00000005
+I2C_READ                          00000002
+I2C_START                         00000003
+I2C_STOP                          00000004
+IBF                               00000007
+IBOV                              00000005
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+NOT_A                             00000005
+NOT_ADDRESS                       00000005
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 10
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+NOT_BO                            00000000
+NOT_BOR                           00000000
+NOT_DONE                          00000002
+NOT_PD                            00000003
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_RC8                           00000006
+NOT_T1SYNC                        00000002
+NOT_TO                            00000004
+NOT_TX8                           00000006
+NOT_W                             00000002
+NOT_WRITE                         00000002
+OBF                               00000006
+OERR                              00000001
+OPTION_REG                        00000081
+P                                 00000004
+PCFG0                             00000000
+PCFG1                             00000001
+PCFG2                             00000002
+PCFG3                             00000003
+PCL                               00000002
+PCLATH                            0000000A
+PCON                              0000008E
+PEIE                              00000006
+PEN                               00000002
+PIE1                              0000008C
+PIE2                              0000008D
+PIR1                              0000000C
+PIR2                              0000000D
+PORTA                             00000005
+PORTB                             00000006
+PORTC                             00000007
+PORTD                             00000008
+PORTE                             00000009
+PR2                               00000092
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+PSPIE                             00000007
+PSPIF                             00000007
+PSPMODE                           00000004
+R                                 00000002
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 11
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RC0                               00000000
+RC1                               00000001
+RC2                               00000002
+RC3                               00000003
+RC4                               00000004
+RC5                               00000005
+RC6                               00000006
+RC7                               00000007
+RC8_9                             00000006
+RC9                               00000006
+RCD8                              00000000
+RCEN                              00000003
+RCIE                              00000005
+RCIF                              00000005
+RCREG                             0000001A
+RCSTA                             00000018
+RD                                00000000
+RD0                               00000000
+RD1                               00000001
+RD2                               00000002
+RD3                               00000003
+RD4                               00000004
+RD5                               00000005
+RD6                               00000006
+RD7                               00000007
+RE0                               00000000
+RE1                               00000001
+RE2                               00000002
+READ_WRITE                        00000002
+RP0                               00000005
+RP1                               00000006
+RSEN                              00000001
+RX9                               00000006
+RX9D                              00000000
+R_NOT_W                           00000002
+R_W                               00000002
+S                                 00000003
+SEN                               00000000
+SMP                               00000007
+SPBRG                             00000099
+SPEN                              00000007
+SREN                              00000005
+SSPADD                            00000093
+SSPBUF                            00000013
+SSPCON                            00000014
+SSPCON2                           00000091
+SSPEN                             00000005
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 12
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+SSPIE                             00000003
+SSPIF                             00000003
+SSPM0                             00000000
+SSPM1                             00000001
+SSPM2                             00000002
+SSPM3                             00000003
+SSPOV                             00000006
+SSPSTAT                           00000094
+STATUS                            00000003
+SYNC                              00000004
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000010
+T1INSYNC                          00000002
+T1OSCEN                           00000003
+T1SYNC                            00000002
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000012
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR1                              0000000E
+TMR1CS                            00000001
+TMR1H                             0000000F
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1L                             0000000E
+TMR1ON                            00000000
+TMR2                              00000011
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2ON                            00000002
+TOUTPS0                           00000003
+TOUTPS1                           00000004
+TOUTPS2                           00000005
+TOUTPS3                           00000006
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 13
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+TRISC                             00000087
+TRISC0                            00000000
+TRISC1                            00000001
+TRISC2                            00000002
+TRISC3                            00000003
+TRISC4                            00000004
+TRISC5                            00000005
+TRISC6                            00000006
+TRISC7                            00000007
+TRISD                             00000088
+TRISD0                            00000000
+TRISD1                            00000001
+TRISD2                            00000002
+TRISD3                            00000003
+TRISD4                            00000004
+TRISD5                            00000005
+TRISD6                            00000006
+TRISD7                            00000007
+TRISE                             00000089
+TRISE0                            00000000
+TRISE1                            00000001
+TRISE2                            00000002
+TRMT                              00000001
+TX8_9                             00000006
+TX9                               00000006
+TX9D                              00000000
+TXD8                              00000000
+TXEN                              00000005
+TXIE                              00000004
+TXIF                              00000004
+TXREG                             00000019
+TXSTA                             00000098
+UA                                00000001
+W                                 00000000
+WCOL                              00000007
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+Z                                 00000002
+_.org_0_0006                      00000006
+_.org_0_0008                      00000008
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_BOREN_OFF                        00003FBF
+_BOREN_ON                         00003FFF
+_CONFIG                           00002007
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_ALL                           00001FFF
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 14
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_CP_OFF                           00003FFF
+_CP_ON                            00001FFF
+_DEBUG_OFF                        00003FFF
+_DEBUG_ON                         000037FF
+_DEVID1                           00002006
+_FOSC_EXTRC                       00003FFF
+_FOSC_HS                          00003FFE
+_FOSC_LP                          00003FFC
+_FOSC_XT                          00003FFD
+_HS_OSC                           00003FFE
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_LP_OSC                           00003FFC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDTE_OFF                         00003FFB
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_WRT_1FOURTH                      00003BFF
+_WRT_256                          00003DFF
+_WRT_HALF                         000039FF
+_WRT_OFF                          00003FFF
+_XT_OSC                           00003FFD
+__16F877A                         00000001
+btn_dec                           PORTB,1
+btn_enter                         PORTB,2
+btn_inc                           PORTB,0
+btn_pulso                         PORTB,3
+clear_dezena                      00000031
+clear_unidade                     0000002C
+dec_dezena                        0000004C
+dec_unidade                       00000044
+decrementa                        00000035
+delays_ms                         00000001
+dezena                            00000020
+dezena_buffer                     00000022
+enter                             00000052
+f_dec_dezena                      00000046
+f_inc_dezena                      00000021
+f_inc_unidade                     00000019
+f_led                             00000063
+f_pulso                           0000005D
+filtro                            00000026
+inc_dezena                        0000002A
+inc_unidade                       0000001F
+incrementa                        0000000E
+inicio                            0000006C
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+led                               PORTC,5
+loop                              0000008B
+mostrar                           0000000A
+seg                               PORTD
+set_dezena                        0000004E
+set_unidade                       0000003F
+tempo0                            00000024
+tempo1                            00000025
+unidade                           00000021
+valor_enter                       00000023
+
+Errors   :     0
+Warnings :     6 reported,     0 suppressed
+Messages :     9 reported,     0 suppressed
+
+
