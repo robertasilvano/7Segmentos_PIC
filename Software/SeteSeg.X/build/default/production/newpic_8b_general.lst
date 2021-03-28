@@ -1,4 +1,4 @@
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  1
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -35,365 +35,375 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00018 
                       00019 
                       00020 ;***** defini??o de Vari?veis  *****************************
-                      00021 ;cria constantes para o programa
-                      00022 
-                      00023         cblock 0x20
-  00000020            00024             dezena
-  00000021            00025             unidade
-  00000022            00026             dezena_buffer
-  00000023            00027             valor_enter
-  00000024            00028             tempo0
-  00000025            00029             tempo1
-  00000026            00030             filtro
-                      00031         endc 
+                      00021 
+                      00022         cblock 0x20
+  00000020            00023             dezena
+  00000021            00024             unidade
+  00000022            00025             dezena_buffer
+  00000023            00026             valor_enter
+  00000024            00027             tempo0
+  00000025            00028             tempo1
+  00000026            00029             filtro
+                      00030         endc 
+                      00031         
                       00032         
-                      00033         
-                      00034 ;********* vari?veis de Entrada ************
-                      00035 #define     btn_inc     PORTB,0 ; Pino 33
-                      00036 #define     btn_dec     PORTB,1         ; Pino 34
-                      00037 #define     btn_enter   PORTB,2         ; Pino 34
-                      00038 #define     btn_pulso   PORTB,3         ; Pino 34
+                      00033 ;********* vari?veis de Entrada ************
+                      00034 #define     btn_inc     PORTB,0 ; Pino 33
+                      00035 #define     btn_dec     PORTB,1 ; Pino 34
+                      00036 #define     btn_enter   PORTB,2 ; Pino 35
+                      00037 #define     btn_pulso   PORTB,3 ; Pino 36
+                      00038 
                       00039 
-                      00040 
-                      00041 ;********* vari?veis de Sa?da ***************
-                      00042 #define         led     PORTC,5             ; Pino 24
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  2
+                      00040 ;********* vari?veis de Sa?da ***************
+                      00041 #define         led     PORTC,5 ; Pino 24
+                      00042 #define         seg     PORTD              
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00043 #define         seg     PORTD               ;
-                      00044 
-                      00045 ;******** Vetor de Reset do uC**************
-                      00046  org 0x00                               ; Vetor de reset do uC.
-0000   2???           00047  goto inicio                        ; Desvia para o inicio do programa.
+                      00043 
+                      00044 ;******** Vetor de Reset do uC**************
+                      00045  org 0x00                               ; Vetor de reset do uC.
+0000   2???           00046  goto inicio                        ; Desvia para o inicio do programa.
+                      00047 
                       00048 
-                      00049 
-                      00050 ;*************** Rotinas e Sub-Rotinas *****************************************
-                      00051 
-0001                  00052 delays_ms:
-0001   00A5           00053     movwf tempo1
-0002   30FA           00054     movlw .250
-0003   00A4           00055     movwf tempo0
-0004   0000           00056     nop
-0005   0BA4           00057     decfsz tempo0, F
-0006   2???           00058     goto $-2
-                      00059     
-0007   0BA5           00060     decfsz tempo1, F
-0008   2???           00061     goto $-6
-                      00062     
-0009   0008           00063     return
+                      00049 ;*************** Rotinas e Sub-Rotinas *****************************************
+                      00050 
+0001                  00051 delays_ms:
+0001   00A5           00052     movwf tempo1
+0002   30FA           00053     movlw .250
+0003   00A4           00054     movwf tempo0
+0004   0000           00055     nop
+0005   0BA4           00056     decfsz tempo0, F
+0006   2???           00057     goto $-2
+                      00058     
+0007   0BA5           00059     decfsz tempo1, F
+0008   2???           00060     goto $-6
+                      00061     
+0009   0008           00062     return
+                      00063     
                       00064     
-000A                  00065 mostrar:
+                      00065 ;********* MOSTRAR O RESULTADO NOS DISPLAYS **********
+                      00066 
+                      00067 ; calcula o resultado final e coloca o valor nos displays
+000A                  00068 mostrar:
 Warning[202]: Argument out of range.  Least significant bits used.
-000A   0E20           00066     swapf dezena, dezena_buffer ; troca os nibbles da dezena
-                      00067     
-000B   0721           00068     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o valor completo
-                      00069     
-000C   0088           00070     movwf seg ; coloca no PORTD o resultado final
-                      00071     
-000D   0008           00072     return
-                      00073 
-000E                  00074 incrementa:
-                      00075     
-000E   0BA6           00076     decfsz filtro, F
-                      00077     
-Warning[202]: Argument out of range.  Least significant bits used.
-000F   30D0           00078     movlw .2000
-0010   2???           00079     call delays_ms
+000A   0E20           00069     swapf dezena, dezena_buffer ; troca os nibbles da dezena, fazendo que o valor em si se torne o MSB
+                      00070     
+000B   0721           00071     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o resultado fina
+                            l
+                      00072     
+000C   0088           00073     movwf seg ; coloca no PORTD o resultado final
+                      00074     
+000D   0008           00075     return
+                      00076 
+                      00077 ;********* INCREMENTA **********
+                      00078     
+000E                  00079 incrementa:
                       00080     
-0011   3010           00081     movlw 0x10 ; coloca 10h no acumulador
+000E   0BA6           00081     decfsz filtro, F
                       00082     
-0012   0221           00083     subwf unidade, W ; subtrai 10 da unidade. se der 0, unidade = 10
-0013   1D03           00084     btfss STATUS, 2 ; se der 0 na conta anterior, vai chamar a função da unidade, se não, só a da dezena
-                            . Precisa disso se não ele vai pular valores que tem unidade 0. Por exemplo: do 9 iria direto pr
-0014   2???           00085     call f_inc_unidade
-0015   2???           00086     call f_inc_dezena
+Warning[202]: Argument out of range.  Least significant bits used.
+000F   30D0           00083     movlw .2000
+0010   2???           00084     call delays_ms
+                      00085     
+0011   3010           00086     movlw 0x10 ; coloca o valor imediato 10h no acumulador
                       00087     
-0016   2???           00088     call f_pulso
-                      00089     
-0017   2???           00090     call mostrar
-                      00091     
-0018   0008           00092     return
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  3
+0012   0221           00088     subwf unidade, W ; subtrai 10h da unidade, se a conta der 0, unidade=10, z(STATUS, 2)=1
+0013   1D03           00089     btfss STATUS, 2 ; se z=0 na conta anterior, significa que a unidade ainda não chegou no 10, então va
+                            i incrementar a unidade. Precisa disso se não ele vai pular valores que tem unidade 0. Por exemp
+                      00090                     ; se z=1 na conta anterior, significa que a unidade chegou em 10 e não deve ser incr
+                            ementada.
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0014   2???           00091     call f_inc_unidade
+0015   2???           00092     call f_inc_dezena
                       00093     
-0019                  00094 f_inc_unidade:
-0019   3009           00095     movlw 0x09 ; coloca 9h no acumulador
-                      00096     
-001A   0221           00097     subwf unidade, W ; subtrai 9h da unidade, se der 0, unidade = 9
-001B   1903           00098     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função de limpar a unidade. Precisa disso
-                             pra zerar a unidade. Se não, continua o código.
-001C   2???           00099     call clear_unidade
-                      00100     
-                      00101     ;movlw 0x09 ; coloca 9h no acumulador
-                      00102     ;subwf unidade, W ; subtrai 9h da unidade, se der 0, unidade = 9. Se a unidade não for 9, vai chamar
-                             a função de incrementar.
-                      00103     ;btfss STATUS, 2 ; se der 0 na conta anterior, vai chamar a função de incrementar
-001D   2???           00104     call inc_unidade   
-001E   0008           00105     return
-                      00106     
-001F                  00107 inc_unidade:
-001F   0AA1           00108     incf unidade, 1 ; incrementa 1 em unidade
-0020   0008           00109     return
+0016   2???           00094     call f_pulso ; função que verifica se temos algum valor salvo com o botão enter, e se o atingimos co
+                            m o botão de pulso
+                      00095     
+0017   2???           00096     call mostrar ; função que calcula o resultado final e coloca nos displays
+                      00097     
+0018   0008           00098     return
+                      00099     
+0019                  00100 f_inc_unidade:
+0019   3009           00101     movlw 0x09 ; coloca o valor imediato 9h no acumulador
+                      00102     
+001A   0221           00103     subwf unidade, W ; subtrai 9h da unidade, se a conta der 0, unidade=9, z(STATUS, 2)=1
+001B   1903           00104     btfsc STATUS, 2 ; se z=1 vai chamar a função de zerar a unidade, no caso que já atingiu seu máximo
+                      00105                     ; se z=0 vai incrementar a unidade
+001C   2???           00106     call clear_unidade
+                      00107     
+001D   2???           00108     call inc_unidade   
+001E   0008           00109     return
                       00110     
-0021                  00111 f_inc_dezena:
-0021   300A           00112     movlw 0x0A ; coloca 10h no acumulador
-                      00113     
-0022   0220           00114     subwf dezena, W ; subtrai 10h da dezena, se der 0, dezena = 10. 
-0023   1903           00115     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função de limpar a dezena. Precisa disso 
-                            pra zerar a dezena. Se não, continua o código.
-0024   2???           00116     call clear_dezena
-                      00117     
-0025   300A           00118     movlw 0x0A ; coloca 10h no acumulador
-0026   0220           00119     subwf dezena, W ; subtrai 10h da dezena, se der 0, dezena = 10. Se a dezena não for 10, vai chamar a
-                             função de incrementar.
-0027   1903           00120     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função de incrementar
-0028   2???           00121     call inc_dezena  
-0029   0008           00122     return
-                      00123     
-002A                  00124 inc_dezena:
-002A   0AA0           00125     incf dezena, 1
-002B   0008           00126     return
-                      00127     
-002C                  00128 clear_unidade:
-002C   3000           00129     movlw 0x00
-002D   00A1           00130     movwf unidade
-                      00131     
-002E   2???           00132     call inc_dezena ; quando precisar zerar a unidade, significa que chegou em 9 e portanto tem que incr
+001F                  00111 inc_unidade:
+001F   0AA1           00112     incf unidade, 1 ; incrementa 1 em unidade
+0020   0008           00113     return
+                      00114     
+0021                  00115 clear_unidade:
+0021   3000           00116     movlw 0x00 ; coloca o valor imediato 0h no acumulador
+0022   00A1           00117     movwf unidade ; move o valor do acumulador para a unidade
+                      00118     
+0023   2???           00119     call inc_dezena ; quando precisar zerar a unidade, significa que chegou em 9 e portanto tem que incr
                             ementar a dezena
-002F   2???           00133     call mostrar
-0030   2???           00134     goto loop
-                      00135     
-0031                  00136 clear_dezena:
-0031   3000           00137     movlw 0x00
-0032   00A0           00138     movwf dezena
-0033   2???           00139     call mostrar
-0034   2???           00140     goto loop
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  4
+0024   2???           00120     call mostrar
+0025   2???           00121     goto loop
+                      00122     
+0026                  00123 f_inc_dezena:
+0026   300A           00124     movlw 0x0A ; coloca o valor imediato 10h no acumulador
+                      00125     
+0027   0220           00126     subwf dezena, W ; subtrai 10h da dezena, se a conta der 0, dezena=10, z(STATUS, 2)=1
+0028   1903           00127     btfsc STATUS, 2 ; se z=1, vai chamar a função de zerar a dezena
+                      00128                     ; se z=0, vai incrementar a dezena
+0029   2???           00129     call clear_dezena
+                      00130     
+002A   300A           00131     movlw 0x0A ; coloca o valor imediato 10h no acumulador
+002B   0220           00132     subwf dezena, W ; subtrai 10h da dezena, se der 0, dezena = 10, z(STATUS, 2)=1
+002C   1903           00133     btfsc STATUS, 2 ; se z=1, vai incrementar a dezena
+002D   2???           00134     call inc_dezena  
+002E   0008           00135     return
+                      00136     
+002F                  00137 inc_dezena:
+002F   0AA0           00138     incf dezena, 1 ; incrementa a dezena
+0030   0008           00139     return
+                      00140     
+0031                  00141 clear_dezena:
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00141 
-                      00142 ;;;;;;;;;;;;
-                      00143 ;    sempre decrementa a unidade
-                      00144 ;    antes de decrementar, verifica se ela eh zero
-                      00145 ;       se sim, tem que usar o set unidade
-                      00146 ;           verifica a dezena
-                      00147 ;               se for zero, set dezena
-                      00148 ;               se nao, so decrementa
-                      00149 ;       se não, so decrementa a unidade
-                      00150         
-0035                  00151 decrementa:
-                      00152     
-0035   0BA6           00153     decfsz filtro, F
-                      00154     
-Warning[202]: Argument out of range.  Least significant bits used.
-0036   30D0           00155     movlw .2000
-0037   2???           00156     call delays_ms
-                      00157     
-0038   3000           00158     movlw 0x00 ; coloca 00h no acumulador
+0031   3000           00142     movlw 0x00 ; coloca o valor imediato 0h no acumulador
+0032   00A0           00143     movwf dezena ; move o valor do acumulador para a unidade
+0033   2???           00144     call mostrar
+0034   2???           00145     goto loop
+                      00146     
+                      00147 ;********* DECREMENTA **********
+                      00148 
+                      00149 ;;;;;;;;;;;;
+                      00150 ;    sempre decrementa a unidade
+                      00151 ;    antes de decrementar, verifica se ela eh zero
+                      00152 ;       se sim, tem que usar o set unidade
+                      00153 ;           verifica a dezena
+                      00154 ;               se for zero, set dezena
+                      00155 ;               se nao, so decrementa
+                      00156 ;       se não, so decrementa a unidade
+                      00157         
+0035                  00158 decrementa:
                       00159     
-0039   0221           00160     subwf unidade, W ; subtrai 00h da unidade. se der 0, unidade = 0
-003A   1903           00161     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função set unidade, se não, só a dec_unid
-                            ade.
-003B   2???           00162     call set_unidade
-003C   2???           00163     call dec_unidade
+0035   0BA6           00160     decfsz filtro, F
+                      00161     
+Warning[202]: Argument out of range.  Least significant bits used.
+0036   30D0           00162     movlw .2000
+0037   2???           00163     call delays_ms
                       00164     
-003D   2???           00165     call mostrar
+0038   3000           00165     movlw 0x00 ; coloca o valor imediato 0h no acumulador
                       00166     
-003E   0008           00167     return
-                      00168     
-003F                  00169 set_unidade:
-003F   3009           00170     movlw 0x09
-0040   00A1           00171     movwf unidade
-                      00172     
-0041   2???           00173     call f_dec_dezena ; quando precisar zerar a unidade, significa que chegou em 9 e portanto tem que in
+0039   0221           00167     subwf unidade, W ; subtrai 00h da unidade. se der 0, unidade = 0
+003A   1903           00168     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função set unidade, se não, só a dec_unid
+                            ade.
+003B   2???           00169     call set_unidade
+003C   2???           00170     call dec_unidade
+                      00171     
+003D   2???           00172     call mostrar
+                      00173     
+003E   0008           00174     return
+                      00175     
+003F                  00176 set_unidade:
+003F   3009           00177     movlw 0x09 ; coloca o valor imediato 9h no acumulador
+0040   00A1           00178     movwf unidade
+                      00179     
+0041   2???           00180     call f_dec_dezena ; quando precisar zerar a unidade, significa que chegou em 9 e portanto tem que in
                             crementar a dezena
-0042   2???           00174     call mostrar
-0043   2???           00175     goto loop
-                      00176     
-0044                  00177 dec_unidade:
-0044   03A1           00178     decf unidade, 1 ; incrementa 1 em unidade
-0045   0008           00179     return
-                      00180 
-0046                  00181 f_dec_dezena:
-0046   3000           00182     movlw 0x00 ; coloca 00h no acumulador
+0042   2???           00181     call mostrar
+0043   2???           00182     goto loop
                       00183     
-0047   0220           00184     subwf dezena, W ; subtrai 00h da unidade. se der 0, unidade = 0
-0048   1903           00185     btfsc STATUS, 2 ; se der 0 na conta anterior, vai chamar a função da unidade, se não, só a da dezena
-                            .
-0049   2???           00186     call set_dezena
-004A   2???           00187     call dec_dezena
-004B   0008           00188     return
-                      00189 
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  5
+0044                  00184 dec_unidade:
+0044   03A1           00185     decf unidade, 1 ; incrementa 1 em unidade
+0045   0008           00186     return
+                      00187 
+0046                  00188 f_dec_dezena:
+0046   3000           00189     movlw 0x00 ; coloca o valor imediato 0h no acumulador
+                      00190     
+0047   0220           00191     subwf dezena, W 
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-004C                  00190 dec_dezena:
-004C   03A0           00191     decf dezena, 1 ; incrementa 1 em unidade
-004D   0008           00192     return
-                      00193     
-004E                  00194 set_dezena:
-004E   3009           00195     movlw 0x09
-004F   00A0           00196     movwf dezena
-                      00197     
-0050   2???           00198     call mostrar
-0051   2???           00199     goto loop
+0048   1903           00192     btfsc STATUS, 2
+0049   2???           00193     call set_dezena
+004A   2???           00194     call dec_dezena
+004B   0008           00195     return
+                      00196 
+004C                  00197 dec_dezena:
+004C   03A0           00198     decf dezena, 1 ; incrementa 1 em unidade
+004D   0008           00199     return
                       00200     
-0052                  00201 enter:
-0052   0BA6           00202     decfsz filtro, F
-                      00203     
-Warning[202]: Argument out of range.  Least significant bits used.
-0053   30D0           00204     movlw .2000
-0054   2???           00205     call delays_ms
-                      00206     
-Warning[202]: Argument out of range.  Least significant bits used.
-0055   0E20           00207     swapf dezena, dezena_buffer ; troca os nibbles da dezena
-                      00208     
-0056   0721           00209     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o valor completo
-                      00210     
-0057   00A3           00211     movwf valor_enter
+004E                  00201 set_dezena:
+004E   3009           00202     movlw 0x09 ; coloca o valor imediato 9h no acumulador
+004F   00A0           00203     movwf dezena
+                      00204     
+0050   2???           00205     call mostrar
+0051   2???           00206     goto loop
+                      00207 
+                      00208 ;********* SALVAR CONFIGURAÇÃO - ENTER **********
+                      00209     
+0052                  00210 enter:
+0052   0BA6           00211     decfsz filtro, F
                       00212     
-0058   3000           00213     movlw 0x00
-0059   00A1           00214     movwf unidade
-005A   00A0           00215     movwf dezena
-005B   0088           00216     movwf seg ; coloca no PORTD o resultado final
-                      00217     
-005C   0008           00218     return
-                      00219     
-005D                  00220 f_pulso:
 Warning[202]: Argument out of range.  Least significant bits used.
-005D   0E20           00221     swapf dezena, dezena_buffer ; troca os nibbles da dezena
-                      00222     
-005E   0721           00223     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o valor completo
-                      00224     
-005F   0223           00225     subwf valor_enter, W
+0053   30D0           00213     movlw .2000
+0054   2???           00214     call delays_ms
+                      00215     
+Warning[202]: Argument out of range.  Least significant bits used.
+0055   0E20           00216     swapf dezena, dezena_buffer ; troca os nibbles da dezena
+                      00217     
+0056   0721           00218     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o valor completo
+                      00219     
+0057   00A3           00220     movwf valor_enter
+                      00221     
+0058   3000           00222     movlw 0x00 ; coloca o valor imediato 0h no acumulador
+0059   00A1           00223     movwf unidade
+005A   00A0           00224     movwf dezena
+005B   0088           00225     movwf seg ; coloca no PORTD o resultado final
                       00226     
-0060   1903           00227     btfsc STATUS, 2
-0061   2???           00228     call f_led
-                      00229 
-0062   0008           00230     return
-                      00231     
-0063                  00232 f_led:
-0063   2???           00233     call mostrar
-                      00234     
-0064   1687           00235     bsf led
-                      00236     
-0065   30FA           00237     movlw .250
-0066   2???           00238     call delays_ms
-                      00239     
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  6
+005C   0008           00227     return
+                      00228 
+                      00229 ;********* PULSO E LED **********
+                      00230     
+005D                  00231 f_pulso:
+Warning[202]: Argument out of range.  Least significant bits used.
+005D   0E20           00232     swapf dezena, dezena_buffer ; troca os nibbles da dezena
+                      00233     
+005E   0721           00234     addwf unidade, W ; soma o valor da unidade com o valor que resultou do swap pra ter o valor completo
+                      00235     
+005F   0223           00236     subwf valor_enter, W ; subtrai o valor do acumulador (resultado final) do valor_enter para saber se 
+                            já atingiu o valor
+                      00237     
+0060   1903           00238     btfsc STATUS, 2 ; se tiver atingido o valor, chama a f_led
+0061   2???           00239     call f_led
+                      00240 
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0067   3000           00240     movlw 0x00
-0068   00A1           00241     movwf unidade
-0069   00A0           00242     movwf dezena    
-                      00243     
-006A   1287           00244     bcf led
+0062   0008           00241     return
+                      00242     
+0063                  00243 f_led:
+0063   2???           00244     call mostrar ; mostra o valor atual nos displays
                       00245     
-006B   0008           00246     return
-                      00247 
-                      00248 
-                      00249 
-                      00250 ;****************** Inicio do programa *****************************************
-                      00251 
-006C                  00252 inicio: 
-                      00253         
-006C   0185           00254         clrf    PORTA           ; Inicializa os Port's. Coloca todas pinos em 0.
-006D   0186           00255         clrf    PORTB
-006E   0187           00256         clrf    PORTC
-006F   0188           00257         clrf    PORTD
-0070   0189           00258         clrf    PORTE
+0064   1687           00246     bsf led ; acende o led
+                      00247     
+0065   30FA           00248     movlw .250
+0066   2???           00249     call delays_ms
+                      00250     
+0067   3000           00251     movlw 0x00 ; coloca o valor imediato 0h no acumulador
+0068   00A1           00252     movwf unidade ; coloca o valor do acumulador na unidade para zerar
+0069   00A0           00253     movwf dezena ; coloca o valor do acumulador na dezena para zerar
+                      00254     
+006A   1287           00255     bcf led ; apaga o led
+                      00256     
+006B   0008           00257     return
+                      00258 
                       00259 
-0071   1683 1303      00260         banksel TRISA           ; Seleciona banco de mem?ria 1
-0073   30FF           00261         movlw   0xFF
+                      00260 
+                      00261 ;****************** Inicio do programa *****************************************
+                      00262 
+006C                  00263 inicio: 
+                      00264         
+006C   0185           00265         clrf    PORTA           ; Inicializa os Port's. Coloca todas pinos em 0.
+006D   0186           00266         clrf    PORTB
+006E   0187           00267         clrf    PORTC
+006F   0188           00268         clrf    PORTD
+0070   0189           00269         clrf    PORTE
+                      00270 
+0071   1683 1303      00271         banksel TRISA           ; Seleciona banco de mem?ria 1
+0073   30FF           00272         movlw   0xFF
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0074   0086           00262         movwf   TRISB           ; Configura PortB como entrada.
-0075   3000           00263         movlw   0x00
+0074   0086           00273         movwf   TRISB           ; Configura PortB como entrada.
+0075   3000           00274         movlw   0x00
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0076   0087           00264         movwf   TRISC           ; Configura PortC como sa?da.
-0077   3000           00265         movlw   0x00
+0076   0087           00275         movwf   TRISC           ; Configura PortC como sa?da.
+0077   3000           00276         movlw   0x00
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0078   0088           00266         movwf   TRISD           ; Configura PortD como sa?da.
-0079   3007           00267         movlw   0x07
+0078   0088           00277         movwf   TRISD           ; Configura PortD como sa?da.
+0079   3007           00278         movlw   0x07
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-007A   0089           00268         movwf   TRISE           ; Configura PortE como entrada e desliga Porta Paralela.
-                      00269 
-007B   3000           00270         movlw   0x00
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-007C   0081           00271         movwf   OPTION_REG      ; Configura Op??es:
-                      00272                                 ; Pull-Up habilitados.
-                      00273                                 ; Interrup??o na borda de subida do sinal no pino B0.
-                      00274                                 ; Timer0 incrementado pelo oscilador interno.
-                      00275                                 ; Prescaler WDT 1:1.
-                      00276                                 ; Prescaler Timer0 1:2.
-                      00277 
-007D   3090           00278         movlw   0x90
-007E   008B           00279         movwf   INTCON          ; Desabilita todas as interrup??es.
+007A   0089           00279         movwf   TRISE           ; Configura PortE como entrada e desliga Porta Paralela.
                       00280 
-007F   3000           00281         movlw   0x00
+007B   3000           00281         movlw   0x00
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0080   008C           00282         movwf   PIE1            ; Desabilita interrup??es perif?ricas.
-                      00283 
-0081   3000           00284         movlw   0x00
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0082   008D           00285         movwf   PIE2            ; Desabilita interrup??es perif?ricas.
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  7
+007C   0081           00282         movwf   OPTION_REG      ; Configura Op??es:
+                      00283                                 ; Pull-Up habilitados.
+                      00284                                 ; Interrup??o na borda de subida do sinal no pino B0.
+                      00285                                 ; Timer0 incrementado pelo oscilador interno.
+                      00286                                 ; Prescaler WDT 1:1.
+                      00287                                 ; Prescaler Timer0 1:2.
+                      00288 
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00286 
-0083   3007           00287         movlw   0x07
-0084   009F           00288         movwf   ADCON0          ; Desliga conversor A/D, PortA e PortE com I/O digital.
-                      00289 
-0085   3007           00290         movlw   0x07
+007D   3090           00289         movlw   0x90
+007E   008B           00290         movwf   INTCON          ; Desabilita todas as interrup??es.
+                      00291 
+007F   3000           00292         movlw   0x00
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0086   009C           00291         movwf   CMCON           ; Desliga comparadores internos.
-                      00292 
-0087   3000           00293         movlw   0x00
+0080   008C           00293         movwf   PIE1            ; Desabilita interrup??es perif?ricas.
+                      00294 
+0081   3000           00295         movlw   0x00
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0088   009D           00294         movwf   CVRCON          ; Desliga m?dulo de ref?rencia interna de tens?o.
-                      00295 
-0089   1283 1303      00296         banksel PORTA           ; Seleciona banco de mem?ria 0.
+0082   008D           00296         movwf   PIE2            ; Desabilita interrup??es perif?ricas.
                       00297 
-                      00298 
-                      00299 
-                      00300 ;*********************** Loop principal ****************************************
-008B                  00301 loop:
-008B   1C06           00302     btfss btn_inc ; verifica se o botão foi apertado. se sim, executa a próxima linha
-008C   2???           00303     call incrementa
-                      00304     
-008D   1C86           00305     btfss btn_dec ; verifica se o botão foi apertado. se sim, executa a próxima linha
-008E   2???           00306     call decrementa
-                      00307     
-008F   1D06           00308     btfss btn_enter
-0090   2???           00309     call enter
-                      00310     
-0091   1D86           00311     btfss btn_pulso
-0092   2???           00312     call incrementa
-                      00313     
-0093   30FA           00314     movlw .250
-0094   00A6           00315     movwf filtro
-                      00316     
-0095   2???           00317     goto loop
-3F39                  00318     end                           ; Fim do Programa.    END    
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  8
+0083   3007           00298         movlw   0x07
+0084   009F           00299         movwf   ADCON0          ; Desliga conversor A/D, PortA e PortE com I/O digital.
+                      00300 
+0085   3007           00301         movlw   0x07
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0086   009C           00302         movwf   CMCON           ; Desliga comparadores internos.
+                      00303 
+0087   3000           00304         movlw   0x00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0088   009D           00305         movwf   CVRCON          ; Desliga m?dulo de ref?rencia interna de tens?o.
+                      00306 
+0089   1283 1303      00307         banksel PORTA           ; Seleciona banco de mem?ria 0.
+                      00308 
+                      00309 
+                      00310 
+                      00311 ;*********************** Loop principal ****************************************
+008B                  00312 loop:
+008B   1C06           00313     btfss btn_inc ; verifica se o botão incrementa foi apertado. se sim, executa a próxima linha
+008C   2???           00314     call incrementa
+                      00315     
+008D   1C86           00316     btfss btn_dec ; verifica se o botão decrementa foi apertado. se sim, executa a próxima linha
+008E   2???           00317     call decrementa
+                      00318     
+008F   1D06           00319     btfss btn_enter ; verifica se o botão enter foi apertado. se sim, executa a próxima linha
+0090   2???           00320     call enter
+                      00321     
+0091   1D86           00322     btfss btn_pulso ; verifica se o botão pulso foi apertado. se sim, executa a próxima linha
+0092   2???           00323     call incrementa
+                      00324     
+0093   30FA           00325     movlw .250
+0094   00A6           00326     movwf filtro
+                      00327     
+0095   2???           00328     goto loop
+3F39                  00329     end                           ; Fim do Programa.    END    
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  8
 
 
 SYMBOL TABLE
@@ -452,7 +462,7 @@ CHS1                              00000004
 CHS2                              00000005
 CIS                               00000003
 CKE                               00000006
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE  9
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE  9
 
 
 SYMBOL TABLE
@@ -511,7 +521,7 @@ INTF                              00000001
 IRP                               00000007
 NOT_A                             00000005
 NOT_ADDRESS                       00000005
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 10
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE 10
 
 
 SYMBOL TABLE
@@ -570,7 +580,7 @@ RB0                               00000000
 RB1                               00000001
 RB2                               00000002
 RB3                               00000003
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 11
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE 11
 
 
 SYMBOL TABLE
@@ -629,7 +639,7 @@ SSPBUF                            00000013
 SSPCON                            00000014
 SSPCON2                           00000091
 SSPEN                             00000005
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 12
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE 12
 
 
 SYMBOL TABLE
@@ -688,7 +698,7 @@ TRISB0                            00000000
 TRISB1                            00000001
 TRISB2                            00000002
 TRISB3                            00000003
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 13
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE 13
 
 
 SYMBOL TABLE
@@ -747,7 +757,7 @@ _CONFIG                           00002007
 _CPD_OFF                          00003FFF
 _CPD_ON                           00003EFF
 _CP_ALL                           00001FFF
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 14
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE 14
 
 
 SYMBOL TABLE
@@ -788,7 +798,7 @@ btn_enter                         PORTB,2
 btn_inc                           PORTB,0
 btn_pulso                         PORTB,3
 clear_dezena                      00000031
-clear_unidade                     0000002C
+clear_unidade                     00000021
 dec_dezena                        0000004C
 dec_unidade                       00000044
 decrementa                        00000035
@@ -797,16 +807,16 @@ dezena                            00000020
 dezena_buffer                     00000022
 enter                             00000052
 f_dec_dezena                      00000046
-f_inc_dezena                      00000021
+f_inc_dezena                      00000026
 f_inc_unidade                     00000019
 f_led                             00000063
 f_pulso                           0000005D
 filtro                            00000026
-inc_dezena                        0000002A
+inc_dezena                        0000002F
 inc_unidade                       0000001F
 incrementa                        0000000E
 inicio                            0000006C
-MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  1:10:16         PAGE 15
+MPASM 5.87             NEWPIC_8B_GENERAL.ASM   3-28-2021  20:16:03         PAGE 15
 
 
 SYMBOL TABLE

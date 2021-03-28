@@ -3,8 +3,8 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>seg</name>
-            <creation-uuid>1683730d-293b-436b-8bdb-0bdae4186c5b</creation-uuid>
+            <name>SeteSeg</name>
+            <creation-uuid>a8af2e76-5ce3-4c64-87b0-da73e0210793</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions/>
             <cpp-extensions/>
