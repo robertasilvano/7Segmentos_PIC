@@ -1,0 +1,15 @@
+Warning[202] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 69 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 92 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 156 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 207 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 210 : Argument out of range.  Least significant bits used.
+Warning[202] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 226 : Argument out of range.  Least significant bits used.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 267 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 269 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 271 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 273 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 276 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 287 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 290 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 296 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] C:\USERS\ROBER\DOCUMENTS\SETESEGMENTOS_PIC\SOFTWARE\VERSAO2.X\NEWPIC_8B_GENERAL.ASM 299 : Register in operand not in bank 0.  Ensure that bank bits are correct.
